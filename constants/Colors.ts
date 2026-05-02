@@ -8,4 +8,5 @@ export const COLORS = {
   border: "#E5E7EB",
   disabled: "#D1D5DB",
   link: "#4F46E5",
+  enabled:"#2E3A59"
 };

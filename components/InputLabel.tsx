@@ -1,26 +1,29 @@
+import { Text, TextInput, View } from "react-native";
 import { COLORS } from "../constants/Colors";
-import { View, Text, TextInput } from "react-native";
 
-const InputLabel = () => {
+type InputLabelProps = {
+  label: string;
+  placeholder: string;
+};
+
+const InputLabel = ({ label, placeholder }: InputLabelProps) => {
   return (
-    <View style={{ flex: 1, width: "100%" }}>
-      <View style={{ marginHorizontal: 15 }}>
+    <View>
+      <View>
         <Text style={{ color: COLORS.textSecondary, fontWeight: "600" }}>
-          Email Address
+          {label}
         </Text>
       </View>
 
       <TextInput
-        placeholder="Email Address"
+        placeholder={placeholder}
         style={{
-          width: "85%",
-          borderColor: "grey",
           backgroundColor: COLORS.inputBg,
-          height: "8%",
+          width: 360,
+          height: 50,
+          marginVertical: 15,
           borderRadius: 50,
-          justifyContent: "center",
-          paddingHorizontal: "15",
-          margin: 15,
+          paddingHorizontal: 15,
         }}
       />
     </View>
