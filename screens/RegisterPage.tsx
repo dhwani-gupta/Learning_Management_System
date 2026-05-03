@@ -2,108 +2,68 @@ import Button from "@/components/Button";
 import Header from "@/components/Header";
 import InputLabel from "@/components/InputLabel";
 import { COLORS } from "@/constants/Colors";
-import { registerUser } from "@/src/api/Auth";
+import { useAuth } from "@/src/context/AuthContext";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  Alert,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    Image,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 const RegisterPage = () => {
   const router = useRouter();
+  const { register, isLoading } = useAuth();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const handleSignUp = async () => {
-    setLoading(true);
     try {
-      const response = await registerUser({
-        username: username.trim(),
-        email: email.trim(),
-        password: password.trim(),
-      });
-
-      // Check if response indicates success (status 200 or data.statusCode === 200)
-      if (response?.statusCode === 200 || response?.success) {
-        Alert.alert(
-          "Success",
-          "User registered successfully! Redirecting to login page",
-          [
-            {
-              text: "OK",
-              onPress: () => router.replace("/"), // Redirect to login page
-            },
-          ],
-        );
-      } else {
-        // Extract detailed error message
-        let errorMessage = response?.message || "Registration failed";
-
-        // If there are validation errors in the errors array
-        if (
-          response?.errors &&
-          Array.isArray(response.errors) &&
-          response.errors.length > 0
-        ) {
-          const errorDetails = response.errors
-            .map((err: any) => {
-              // Each error is an object like { "username": "Username must be lowercase" }
-              const key = Object.keys(err)[0];
-              return err[key];
-            })
-            .join("\n");
-          errorMessage = errorDetails || errorMessage;
-        }
-
-        Alert.alert("Error", errorMessage);
-      }
+      await register(username.trim(), email.trim(), password.trim());
+      // Redirect to login page after successful registration
+      Alert.alert(
+        "Success",
+        "Registration successful! Please login with your credentials.",
+        [
+          {
+            text: "OK",
+            onPress: () => router.replace("/"),
+          },
+        ],
+      );
     } catch (error: any) {
-      // Handle network or other errors
-      let errorMessage = "An error occurred";
+      let errorMessage = error?.message || "Registration failed";
 
-      // Try to extract error from response data (including validation errors)
-      if (error?.response?.data) {
-        const data = error.response.data;
-
-        if (
-          data.errors &&
-          Array.isArray(data.errors) &&
-          data.errors.length > 0
-        ) {
-          errorMessage = data.errors
-            .map((err: any) => {
-              const key = Object.keys(err)[0];
-              return err[key];
-            })
-            .join("\n");
-        } else {
-          errorMessage = data.message || errorMessage;
-        }
-      } else if (error?.message) {
-        errorMessage = error.message;
+      if (
+        error?.response?.data?.errors &&
+        Array.isArray(error.response.data.errors) &&
+        error.response.data.errors.length > 0
+      ) {
+        const errorDetails = error.response.data.errors
+          .map((err: any) => {
+            const key = Object.keys(err)[0];
+            return err[key];
+          })
+          .join("\n");
+        errorMessage = errorDetails || errorMessage;
       }
 
       Alert.alert("Error", errorMessage);
-    } finally {
-      setLoading(false);
     }
   };
 
-  // Check if all fields are filled
   const isFormValid =
     username.trim() && email.trim() && password.trim() && password.length >= 6;
-  const isButtonDisabled = !isFormValid || loading;
+  const isButtonDisabled = !isFormValid || isLoading;
 
   const signUpBtnStyle = isButtonDisabled
     ? { ...styles.signUpBtn, backgroundColor: COLORS.disabled }
     : { ...styles.signUpBtn, backgroundColor: COLORS.enabled };
+
   return (
     <View style={styles.container}>
       <View style={styles.logoContainer}>
@@ -145,14 +105,14 @@ const RegisterPage = () => {
       </View>
 
       <Button
-        label={loading ? "Signing Up..." : "Sign Up"}
+        label={isLoading ? "Signing Up..." : "Sign Up"}
         onPress={isButtonDisabled ? undefined : handleSignUp}
         style={signUpBtnStyle}
         textStyle={styles.signUpBtnText}
       />
 
       <View style={styles.signInRow}>
-        <Text style={styles.signInText}>{" Have an account? "}</Text>
+        <Text style={styles.signInText}>{"Have an account? "}</Text>
         <TouchableOpacity onPress={() => router.back()}>
           <Text style={styles.signInLink}>Sign In</Text>
         </TouchableOpacity>
@@ -168,6 +128,7 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: "center",
+    gap: 10,
   },
   backBtn: {
     alignSelf: "flex-start",

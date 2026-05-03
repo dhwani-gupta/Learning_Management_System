@@ -2,7 +2,7 @@ import Button from "@/components/Button";
 import Header from "@/components/Header";
 import InputLabel from "@/components/InputLabel";
 import { COLORS } from "@/constants/Colors";
-import { loginUser } from "@/src/api/Auth";
+import { useAuth } from "@/src/context/AuthContext";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -16,76 +16,37 @@ import {
 
 const LoginPage = () => {
   const router = useRouter();
+  const { login, isLoading } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const isFormValid = username.trim() && password.trim();
   const handelSignIn = async () => {
-    setLoading(true);
     try {
-      const response = await loginUser({
-        username: username.trim(),
-        password: password.trim(),
-      });
-
-      if (response?.statusCode === 200 || response?.success) {
-        Alert.alert("Success", "Login Successfully!", [
-          {
-            text: "OK",
-            onPress: () => router.replace("/courses"),
-          },
-        ]);
-      } else {
-        // Extract detailed error message
-        let errorMessage = response?.message || "Login failed";
-
-        // If there are validation errors in the errors array
-        if (
-          response?.errors &&
-          Array.isArray(response.errors) &&
-          response.errors.length > 0
-        ) {
-          const errorDetails = response.errors
-            .map((err: any) => {
-              const key = Object.keys(err)[0];
-              return err[key];
-            })
-            .join("\n");
-          errorMessage = errorDetails || errorMessage;
-        }
-
-        Alert.alert("Error", errorMessage);
-      }
+      await login(username.trim(), password.trim());
+      // No need to manually redirect - RootLayout will handle it automatically
+      // when isSignedIn state updates
+      Alert.alert("Success", "Login Successfully!");
     } catch (error: any) {
-      // Handle network or other errors
-      let errorMessage = "An error occurred";
+      // Extract detailed error message
+      let errorMessage = error?.message || "Login failed";
 
-      // Try to extract error from response data
-      if (error?.response?.data) {
-        const data = error.response.data;
-
-        if (
-          data.errors &&
-          Array.isArray(data.errors) &&
-          data.errors.length > 0
-        ) {
-          errorMessage = data.errors
-            .map((err: any) => {
-              const key = Object.keys(err)[0];
-              return err[key];
-            })
-            .join("\n");
-        } else {
-          errorMessage = data.message || errorMessage;
-        }
-      } else if (error?.message) {
-        errorMessage = error.message;
+      // If there are validation errors in the errors array
+      if (
+        error?.response?.data?.errors &&
+        Array.isArray(error.response.data.errors) &&
+        error.response.data.errors.length > 0
+      ) {
+        const errorDetails = error.response.data.errors
+          .map((err: any) => {
+            const key = Object.keys(err)[0];
+            return err[key];
+          })
+          .join("\n");
+        errorMessage = errorDetails || errorMessage;
       }
 
       Alert.alert("Error", errorMessage);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -123,12 +84,12 @@ const LoginPage = () => {
       </View>
 
       <Button
-        label={loading ? "Signing In..." : "Sign In"}
-        onPress={isFormValid && !loading ? handelSignIn : undefined}
+        label={isLoading ? "Signing In..." : "Sign In"}
+        onPress={isFormValid && !isLoading ? handelSignIn : undefined}
         style={{
           ...styles.signInBtn,
           backgroundColor:
-            isFormValid && !loading ? COLORS.enabled : COLORS.disabled,
+            isFormValid && !isLoading ? COLORS.enabled : COLORS.disabled,
         }}
         textStyle={styles.signInBtnText}
       />
