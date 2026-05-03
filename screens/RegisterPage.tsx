@@ -2,43 +2,49 @@ import Button from "@/components/Button";
 import Header from "@/components/Header";
 import InputLabel from "@/components/InputLabel";
 import { COLORS } from "@/constants/Colors";
-import { loginUser } from "@/src/api/Auth";
+import { registerUser } from "@/src/api/Auth";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-    Alert,
-    Image,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
-const LoginPage = () => {
+const RegisterPage = () => {
   const router = useRouter();
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const isFormValid = username.trim() && password.trim();
-  const handelSignIn = async () => {
+  const handleSignUp = async () => {
     setLoading(true);
     try {
-      const response = await loginUser({
+      const response = await registerUser({
         username: username.trim(),
+        email: email.trim(),
         password: password.trim(),
       });
 
+      // Check if response indicates success (status 200 or data.statusCode === 200)
       if (response?.statusCode === 200 || response?.success) {
-        Alert.alert("Success", "Login Successfully!", [
-          {
-            text: "OK",
-            onPress: () => router.replace("/courses"),
-          },
-        ]);
+        Alert.alert(
+          "Success",
+          "User registered successfully! Redirecting to login page",
+          [
+            {
+              text: "OK",
+              onPress: () => router.replace("/"), // Redirect to login page
+            },
+          ],
+        );
       } else {
         // Extract detailed error message
-        let errorMessage = response?.message || "Login failed";
+        let errorMessage = response?.message || "Registration failed";
 
         // If there are validation errors in the errors array
         if (
@@ -48,6 +54,7 @@ const LoginPage = () => {
         ) {
           const errorDetails = response.errors
             .map((err: any) => {
+              // Each error is an object like { "username": "Username must be lowercase" }
               const key = Object.keys(err)[0];
               return err[key];
             })
@@ -61,7 +68,7 @@ const LoginPage = () => {
       // Handle network or other errors
       let errorMessage = "An error occurred";
 
-      // Try to extract error from response data
+      // Try to extract error from response data (including validation errors)
       if (error?.response?.data) {
         const data = error.response.data;
 
@@ -89,9 +96,20 @@ const LoginPage = () => {
     }
   };
 
+  // Check if all fields are filled
+  const isFormValid =
+    username.trim() && email.trim() && password.trim() && password.length >= 6;
+  const isButtonDisabled = !isFormValid || loading;
+
+  const signUpBtnStyle = isButtonDisabled
+    ? { ...styles.signUpBtn, backgroundColor: COLORS.disabled }
+    : { ...styles.signUpBtn, backgroundColor: COLORS.enabled };
   return (
     <View style={styles.container}>
       <View style={styles.logoContainer}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <Text style={styles.backBtnText}>←</Text>
+        </TouchableOpacity>
         <Image
           source={require("../assets/images/Logo.jpeg")}
           style={styles.logo}
@@ -100,7 +118,10 @@ const LoginPage = () => {
         <Text style={styles.appName}>SkillNest</Text>
       </View>
 
-      <Header title="Welcome Back!" subtitle="Enter your login information" />
+      <Header
+        title="Sign Up Account"
+        subtitle="Enter your personal data to create your account"
+      />
       <View>
         <InputLabel
           label="Username"
@@ -109,34 +130,31 @@ const LoginPage = () => {
           onChangeText={setUsername}
         />
         <InputLabel
+          label="Email Address"
+          placeholder="Email Address"
+          value={email}
+          onChangeText={setEmail}
+        />
+        <InputLabel
           label="Password"
           placeholder="Password"
           value={password}
           onChangeText={setPassword}
         />
-        <Button
-          label="Forgot Password?"
-          onPress={() => {}}
-          style={styles.forgotBtn}
-          textStyle={styles.forgotBtnText}
-        />
+        <Header subtitle="Must contain at least 6 characters" />
       </View>
 
       <Button
-        label={loading ? "Signing In..." : "Sign In"}
-        onPress={isFormValid && !loading ? handelSignIn : undefined}
-        style={{
-          ...styles.signInBtn,
-          backgroundColor:
-            isFormValid && !loading ? COLORS.enabled : COLORS.disabled,
-        }}
-        textStyle={styles.signInBtnText}
+        label={loading ? "Signing Up..." : "Sign Up"}
+        onPress={isButtonDisabled ? undefined : handleSignUp}
+        style={signUpBtnStyle}
+        textStyle={styles.signUpBtnText}
       />
 
-      <View style={styles.signUpRow}>
-        <Text style={styles.signUpText}>{"Don't have an account? "}</Text>
-        <TouchableOpacity onPress={() => router.push("/register")}>
-          <Text style={styles.signUpLink}>Sign Up</Text>
+      <View style={styles.signInRow}>
+        <Text style={styles.signInText}>{" Have an account? "}</Text>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={styles.signInLink}>Sign In</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -150,7 +168,13 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: "center",
-    gap: 10,
+  },
+  backBtn: {
+    alignSelf: "flex-start",
+  },
+  backBtnText: {
+    fontSize: 24,
+    color: COLORS.textPrimary,
   },
   logo: {
     width: 80,
@@ -162,16 +186,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: COLORS.textPrimary,
   },
-  forgotBtn: {
-    alignSelf: "flex-end",
-  },
-  forgotBtnText: {
-    color: COLORS.textSecondary,
-    fontWeight: "500",
-    fontSize: 14,
-    textDecorationLine: "underline",
-  },
-  signInBtn: {
+  signUpBtn: {
     width: 360,
     height: 50,
     marginVertical: 15,
@@ -180,22 +195,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  signInBtnText: {
+  signUpBtnText: {
     color: "white",
     fontWeight: "600",
     fontSize: 14,
   },
-  signUpRow: {
+  signInRow: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
   },
-  signUpText: {
+  signInText: {
     fontSize: 14,
     color: COLORS.textSecondary,
     fontWeight: "600",
   },
-  signUpLink: {
+  signInLink: {
     fontSize: 14,
     fontWeight: "500",
     textDecorationLine: "underline",
@@ -203,4 +218,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LoginPage;
+export default RegisterPage;

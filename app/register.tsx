@@ -1,7 +1,7 @@
-import LoginPage from "@/screens/LoginPage";
+import RegisterPage from "@/screens/RegisterPage";
 import { View } from "react-native";
 
-export default function Index() {
+export default function Register() {
   return (
     <View
       style={{
@@ -11,7 +11,7 @@ export default function Index() {
         alignItems: "center",
       }}
     >
-      <LoginPage />
+      <RegisterPage />
     </View>
   );
 }

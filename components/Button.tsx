@@ -2,14 +2,14 @@ import { Text, TextStyle, TouchableOpacity, ViewStyle } from "react-native";
 
 type ButtonProps = {
   label: string;
-  onPress: () => void;
+  onPress?: () => void;
   style?: ViewStyle;
   textStyle?: TextStyle;
 };
 
 const Button = ({ label, onPress, style, textStyle }: ButtonProps) => {
   return (
-    <TouchableOpacity onPress={onPress} style={style}>
+    <TouchableOpacity onPress={onPress} style={style} disabled={!onPress}>
       <Text style={textStyle}>{label}</Text>
     </TouchableOpacity>
   );
