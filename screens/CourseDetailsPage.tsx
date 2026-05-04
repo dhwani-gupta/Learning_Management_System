@@ -2,6 +2,8 @@ import Button from "@/components/Button";
 import { COLORS } from "@/constants/Colors";
 import { fetchCourses, fetchInstructors } from "@/src/api/courses";
 import { Course } from "@/src/types/course";
+import { courseImageUrl } from "@/src/utils/image";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
@@ -33,6 +35,7 @@ const CourseDetailsPage = () => {
       }
     } catch (error) {
       console.log("Error checking bookmark:", error);
+      // Silently fail - bookmark will be false
     }
   }, [id]);
 
@@ -93,8 +96,14 @@ const CourseDetailsPage = () => {
             title: course.title || "Untitled Course",
             description: course.description || "",
             price: course.price || 0,
-            thumbnail: course.thumbnail || course.image || "",
-            image: course.image || course.thumbnail || "",
+            thumbnail:
+              course.thumbnail ||
+              course.image ||
+              courseImageUrl(`course-${index}`, 600, 400),
+            image:
+              course.image ||
+              course.thumbnail ||
+              courseImageUrl(`course-${index}`, 900, 500),
             rating: course.rating || 0,
             reviews: course.stock || 0,
             instructor:
@@ -189,9 +198,9 @@ const CourseDetailsPage = () => {
       <Image
         source={{
           uri:
-            course.thumbnail ||
             course.image ||
-            "https://via.placeholder.com/400x250",
+            course.thumbnail ||
+            courseImageUrl(course.id, 900, 500),
         }}
         style={styles.thumbnail}
         resizeMode="cover"
@@ -202,7 +211,11 @@ const CourseDetailsPage = () => {
         style={styles.bookmarkButton}
         onPress={handleBookmarkToggle}
       >
-        <Text style={styles.bookmarkText}>{isBookmarked ? "❤️" : "🤍"}</Text>
+        <MaterialCommunityIcons
+          name={isBookmarked ? "bookmark" : "bookmark-outline"}
+          size={24}
+          color={isBookmarked ? "#FF6B6B" : "#999999"}
+        />
       </TouchableOpacity>
 
       {/* Course Info */}
@@ -304,9 +317,6 @@ const styles = StyleSheet.create({
     height: 56,
     justifyContent: "center",
     alignItems: "center",
-  },
-  bookmarkText: {
-    fontSize: 28,
   },
   content: {
     padding: 16,

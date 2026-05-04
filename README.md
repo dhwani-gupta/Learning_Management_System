@@ -1,50 +1,86 @@
-# Welcome to your Expo app 👋
+# Learning Management System (Expo + React Native)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This is a small learning-management mobile app built with Expo, Expo Router and TypeScript. The app includes authentication, a browseable course catalog, course details, bookmarking, and a profile screen.
 
-## Get started
+## Quick setup
+
+Follow these steps to get the project running locally.
 
 1. Install dependencies
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
 ```bash
-npm run reset-project
+# from project root
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. Install native Expo modules (ensure you have node and npm available)
 
-## Learn more
+```bash
+# With Expo-managed projects, prefer expo install for native modules
+npx expo install @react-native-async-storage/async-storage
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+3. Start the dev server (clear cache if you see native module errors)
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+npm start -- -c
+# or
+npx expo start --clear
+```
 
-## Join the community
+4. Run on a device or simulator
 
-Join our community of developers creating universal apps.
+```bash
+# iOS simulator
+npm run ios
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+# Android emulator
+npm run android
+
+# Web (optional)
+npm run web
+```
+
+If you see errors like "Native module is null, cannot access legacy storage", stop the server and restart with the `--clear` flag as shown above.
+
+## Environment variables
+
+Create a `.env` file in the project root (or use a `.env.local`) and add the variables below. These are the variables the app expects at runtime.
+
+```env
+# API base URL (example)
+API_BASE_URL=https://api.example.com
+
+# Optional: endpoints or keys your backend requires
+AUTH_CLIENT_ID=your-client-id
+AUTH_CLIENT_SECRET=your-client-secret
+```
+
+Notes:
+
+- The app uses `API_BASE_URL` when calling the backend API (login, courses endpoints). Update `src/api` if your backend paths differ.
+- If you don't have a backend, the app will still run but some features (auth, real enrollments) will be mocked or limited.
+
+## Where to look in the code
+
+- `src/context/AuthContext.tsx` — authentication state, token storage (SecureStore)
+- `src/api` — API wrappers (auth and courses)
+- `screens/` — main screens (CoursesPage, CourseDetailsPage, ProfileScreen)
+- `components/` — reusable UI components (CourseCard, Button, Header)
+
+## Known issues & notes
+
+- If you add or remove native packages, restart Expo with `--clear`.
+- The app stores bookmarks in `AsyncStorage` under the key `bookmarkedCourses`.
+- Tokens are stored securely using `expo-secure-store` in `AuthContext`.
+
+If you want I can also add a minimal `.env.example` file and a short `SETUP.md` with troubleshooting steps.
+
+## Screen shots
+
+![alt text](image-1.png)
+![alt text](image-2.png)
+![alt text](image-3.png)
+![alt text](image-4.png)
+![alt text](image-5.png)
+![alt text](image-6.png)

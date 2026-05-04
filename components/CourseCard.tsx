@@ -23,9 +23,9 @@ const CourseCard = ({
         <Image
           source={{
             uri:
-              course.thumbnail ||
-              course.image ||
-              "https://via.placeholder.com/300x200",
+            //   course.thumbnail ||
+            //   course.image ||
+              "https://www.pexels.com/photo/stack-of-children-s-books-on-a-wooden-bookshelf-31024471/",
           }}
           style={styles.thumbnail}
           resizeMode="cover"
@@ -38,7 +38,7 @@ const CourseCard = ({
           }}
         >
           <MaterialCommunityIcons
-            name={isBookmarked ? "heart" : "heart-outline"}
+            name={isBookmarked ? "bookmark" : "bookmark-outline"}
             size={24}
             color={isBookmarked ? "#FF6B6B" : "#999999"}
           />
