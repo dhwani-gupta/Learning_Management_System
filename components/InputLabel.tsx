@@ -6,6 +6,7 @@ type InputLabelProps = {
   placeholder: string;
   value?: string;
   onChangeText?: (text: string) => void;
+  secureTextEntry?:boolean
 };
 
 const InputLabel = ({
@@ -13,6 +14,7 @@ const InputLabel = ({
   placeholder,
   value,
   onChangeText,
+  secureTextEntry,
 }: InputLabelProps) => {
   return (
     <View>
@@ -23,6 +25,7 @@ const InputLabel = ({
         value={value}
         onChangeText={onChangeText}
         autoCapitalize="none"
+        secureTextEntry={secureTextEntry}
       />
     </View>
   );

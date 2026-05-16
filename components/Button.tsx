@@ -5,11 +5,12 @@ type ButtonProps = {
   onPress?: () => void;
   style?: ViewStyle;
   textStyle?: TextStyle;
+  disabled?:boolean;
 };
 
-const Button = ({ label, onPress, style, textStyle }: ButtonProps) => {
+const Button = ({ label, onPress, style, textStyle, disabled }: ButtonProps) => {
   return (
-    <TouchableOpacity onPress={onPress} style={style} disabled={!onPress}>
+    <TouchableOpacity onPress={onPress} style={style} disabled={disabled}>
       <Text style={textStyle}>{label}</Text>
     </TouchableOpacity>
   );

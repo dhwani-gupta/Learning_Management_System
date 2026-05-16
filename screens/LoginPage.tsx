@@ -2,53 +2,58 @@ import Button from "@/components/Button";
 import Header from "@/components/Header";
 import InputLabel from "@/components/InputLabel";
 import { COLORS } from "@/constants/Colors";
-import { useAuth } from "@/src/context/AuthContext";
+import { loginUser } from "@/src/api/Auth";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-    Alert,
-    Image,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 const LoginPage = () => {
   const router = useRouter();
-  const { login, isLoading } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const isFormValid = username.trim() && password.trim();
-  const handelSignIn = async () => {
+  const handleLogin = async () => {
     try {
-      await login(username.trim(), password.trim());
-      // No need to manually redirect - RootLayout will handle it automatically
-      // when isSignedIn state updates
-      Alert.alert("Success", "Login Successfully!");
-    } catch (error: any) {
-      // Extract detailed error message
-      let errorMessage = error?.message || "Login failed";
-
-      // If there are validation errors in the errors array
-      if (
-        error?.response?.data?.errors &&
-        Array.isArray(error.response.data.errors) &&
-        error.response.data.errors.length > 0
-      ) {
-        const errorDetails = error.response.data.errors
-          .map((err: any) => {
-            const key = Object.keys(err)[0];
-            return err[key];
-          })
-          .join("\n");
-        errorMessage = errorDetails || errorMessage;
+      //never trust ui only
+      if (!username || !password) {
+        Alert.alert("Please enter username and password");
+        return;
       }
+      setLoading(true);
+      const response = await loginUser({ username, password });
+      // you can log to understand structure
+      console.log("LOGIN RESPONSE:", response);
 
-      Alert.alert("Error", errorMessage);
+      if (response?.statusCode === 200 || response?.success) {
+        Alert.alert("Logined Successfully");
+        //used setTimeout just for the time being, for checking the delay.
+        setTimeout(() => {
+          router.push("/course");
+        }, 1000);
+      } else {
+        //API ERROR HANDLING
+        Alert.alert(response?.message || "Login failed");
+      }
+    } catch (error: any) {
+      console.error("LOGIN ERROR:", error);
+      //HTTP ERROR HANDLING
+      const message = error?.response?.data?.message || "something went wrong";
+      Alert.alert(message);
+    } finally {
+      setLoading(false);
     }
   };
+
+  const isFormValid = Boolean(username && password);
+  const isLoginDisabled = !isFormValid || loading;
 
   return (
     <View style={styles.container}>
@@ -74,6 +79,7 @@ const LoginPage = () => {
           placeholder="Password"
           value={password}
           onChangeText={setPassword}
+          secureTextEntry={true}
         />
         <Button
           label="Forgot Password?"
@@ -84,13 +90,15 @@ const LoginPage = () => {
       </View>
 
       <Button
-        label={isLoading ? "Signing In..." : "Sign In"}
-        onPress={isFormValid && !isLoading ? handelSignIn : undefined}
-        style={{
-          ...styles.signInBtn,
-          backgroundColor:
-            isFormValid && !isLoading ? COLORS.enabled : COLORS.disabled,
-        }}
+        label={loading ? "Signing In..." : "Sign In"}
+        onPress={handleLogin}
+        disabled={isLoginDisabled}
+        style={[
+          styles.signInBtn,
+          isLoginDisabled
+            ? { backgroundColor: COLORS.disabled }
+            : { backgroundColor: COLORS.enabled },
+        ]}
         textStyle={styles.signInBtnText}
       />
 
