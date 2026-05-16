@@ -5,29 +5,44 @@ import { registerUser } from "@/src/api/Auth";
 import { COLORS } from "@/constants/Colors";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View, Alert } from "react-native";
+import {
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Alert,
+} from "react-native";
 
 const RegisterPage = () => {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleRegisterUser= async()=>{
+  const handleRegisterUser = async () => {
+    setLoading(true);
 
     try {
-      const response = await registerUser({email,username,password})
-      if(response.statusCode === 200 || response.success){
-        Alert.alert(response.message || "Registration Successfull")
-        router.push('/')
-      }else{
-        
+      const response = await registerUser({ email, username, password });
+      if (response.statusCode === 200 || response.success) {
+        Alert.alert(response.message || "Registration Successfull");
+        router.push("/");
+      } else {
+        Alert.alert(response.message || "Registration failed");
       }
-    } catch (error) {
-      
+    } catch (error: any) {
+      console.error("LOGIN ERROR:", error);
+      const msg = error?.response?.data?.message;
+      Alert.alert(msg);
+    } finally {
+      setLoading(false);
     }
+  };
 
-  }
+  const isFormValid = username && password && email;
+  const isDisabled = !isFormValid || loading;
 
   return (
     <View style={styles.container}>
@@ -70,10 +85,16 @@ const RegisterPage = () => {
       </View>
 
       <Button
-        label={"Sign Up"}
+        label={loading ? "Signing Up..." : "Sign Up"}
         onPress={handleRegisterUser}
-        style={styles.signUpBtn}
+        style={[
+          styles.signUpBtn,
+          isDisabled
+            ? { backgroundColor: COLORS.disabled }
+            : { backgroundColor: COLORS.enabled },
+        ]}
         textStyle={styles.signUpBtnText}
+        disabled={isDisabled}
       />
 
       <View style={styles.signInRow}>
@@ -120,7 +141,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: COLORS.enabled,
   },
   signUpBtnText: {
     color: "white",
