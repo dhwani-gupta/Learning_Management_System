@@ -1,68 +1,33 @@
 import Button from "@/components/Button";
 import Header from "@/components/Header";
 import InputLabel from "@/components/InputLabel";
+import { registerUser } from "@/src/api/Auth";
 import { COLORS } from "@/constants/Colors";
-import { useAuth } from "@/src/context/AuthContext";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import {
-    Alert,
-    Image,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import { Image, StyleSheet, Text, TouchableOpacity, View, Alert } from "react-native";
 
 const RegisterPage = () => {
   const router = useRouter();
-  const { register, isLoading } = useAuth();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSignUp = async () => {
+  const handleRegisterUser= async()=>{
+
     try {
-      await register(username.trim(), email.trim(), password.trim());
-      // Redirect to login page after successful registration
-      Alert.alert(
-        "Success",
-        "Registration successful! Please login with your credentials.",
-        [
-          {
-            text: "OK",
-            onPress: () => router.replace("/"),
-          },
-        ],
-      );
-    } catch (error: any) {
-      let errorMessage = error?.message || "Registration failed";
-
-      if (
-        error?.response?.data?.errors &&
-        Array.isArray(error.response.data.errors) &&
-        error.response.data.errors.length > 0
-      ) {
-        const errorDetails = error.response.data.errors
-          .map((err: any) => {
-            const key = Object.keys(err)[0];
-            return err[key];
-          })
-          .join("\n");
-        errorMessage = errorDetails || errorMessage;
+      const response = await registerUser({email,username,password})
+      if(response.statusCode === 200 || response.success){
+        Alert.alert(response.message || "Registration Successfull")
+        router.push('/')
+      }else{
+        
       }
-
-      Alert.alert("Error", errorMessage);
+    } catch (error) {
+      
     }
-  };
 
-  const isFormValid =
-    username.trim() && email.trim() && password.trim() && password.length >= 6;
-  const isButtonDisabled = !isFormValid || isLoading;
-
-  const signUpBtnStyle = isButtonDisabled
-    ? { ...styles.signUpBtn, backgroundColor: COLORS.disabled }
-    : { ...styles.signUpBtn, backgroundColor: COLORS.enabled };
+  }
 
   return (
     <View style={styles.container}>
@@ -105,9 +70,9 @@ const RegisterPage = () => {
       </View>
 
       <Button
-        label={isLoading ? "Signing Up..." : "Sign Up"}
-        onPress={isButtonDisabled ? undefined : handleSignUp}
-        style={signUpBtnStyle}
+        label={"Sign Up"}
+        onPress={handleRegisterUser}
+        style={styles.signUpBtn}
         textStyle={styles.signUpBtnText}
       />
 
@@ -155,6 +120,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: COLORS.enabled,
   },
   signUpBtnText: {
     color: "white",
